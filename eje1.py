@@ -6,7 +6,6 @@ class Point:
 
     def __repr__(self):
         return str(self.__dict__)
-    #def __geti
 
 class Line:
     def __init__(self,a:Point,b:Point):
@@ -21,6 +20,10 @@ class Rectangle:
         self.method=method
         self.c1:Point
         self.c2:Point
+        self.L1:Line
+        self.L2:Line
+        self.L3:Line
+        self.L4:Line
 
     def du(self):
         if(self.height==0):
@@ -37,6 +40,8 @@ class Rectangle:
             return self.height*self.width
         if self.method==3:       
             return  abs((self.c2[0]-self.c1[0])*(self.c2[1]-self.c1[1]))
+        if self.method==4:
+            return (float(max([self.L1[0],self.L2[0],self.L3[0],self.L4[0]]))-float(min([self.L1[0],self.L2[0],self.L3[0],self.L4[0]])))*(float(max([self.L1[1],self.L2[1],self.L3[1],self.L4[1]]))-float(min([self.L1[1],self.L2[1],self.L3[1],self.L4[1]])))
         
     def compute_perimeter(self):
         if self.method==1:
@@ -59,6 +64,7 @@ class Square(Rectangle):
         self.center:Point
         self.c1:Point
         self.c2:Point
+        
         
 
     def convertir(self):
@@ -124,14 +130,24 @@ B.center=(2,3)
 #B.c2=(0,4)
 #a=Point(1,1)
 #b=Point(5,5)
-c=Line((1,1),(1,3))
+C=Line((1,1),(1,3))
 #print(A.compute_interference_point((1,5)))
 
 print(B.compute_interference_point((1,1)))
 print(B.compute_interference_point((1,3)))
-print(B.compute_interference_line(c))
+print(B.compute_interference_line(C))
 
 #print(A.compute_area(),A.compute_perimeter())
 print(B.compute_area(),B.compute_perimeter())
 #print(C.compute_area(),C.compute_perimeter())
 
+a:Line=((0,0),(0,4))
+b:Line=((0,4),(4,4))
+c:Line=((4,4),(4,0))
+d:Line=((4,0),(0,0))
+D=Square(4)
+D.L1=a
+D.L2=b
+D.L3=c
+D.L4=d
+print(D.compute_area())
