@@ -1,4 +1,13 @@
 import  math as ma
+
+def frange2(start, stop, step):
+    n_items = int(ma.ceil((stop - start) / step))
+    return [redu_deci(start + i*step )  for i in range(n_items+1)]
+
+def redu_deci(a:float):
+    return round(int(a*1000)/1000,2)
+
+
 class Point:
     def __init__(self,x:float,y:float):
         self.x=x
@@ -7,10 +16,67 @@ class Point:
     def __repr__(self):
         return str(self.__dict__)
 
-class Line:
-    def __init__(self,a:Point,b:Point):
-        self.p1=a
-        self.p2=b
+
+class Line():
+    def __init__(self, start:Point, end:Point):
+        self.start=start
+        self.end=end
+        self.length:float
+        self.slope:float
+        self.discretized_line:list
+
+    def compute_length(self):
+        self.length=ma.sqrt((self.end[0]-self.start[0])**2+(self.end[1]-self.start[1])**2)
+        return self.length
+    
+    def compute_slope(self):
+        self.slope=ma.degrees(ma.atan((self.end[1]-self.start[1])/(self.end[0]-self.start[0])))
+        return self.slope
+
+    def compute_horizontal_cross(self):
+        if (self.start[1]<=0<=self.end[1] or self.start[1]>=0>=self.end[1]):
+            return True
+        else:
+            return False
+        
+    def compute_vertical_cross(self):
+        if (self.start[0]<=0<=self.end[0] or self.start[0]>=0>=self.end[0]):
+            return True
+        else:
+            return False
+        
+    def discretize_line(self,com:Point=None):# list,bool
+        m:float=0
+        b:float=0
+        if self.end[0]!=self.start[0] :
+            m=(self.end[1]-self.start[1])/(self.end[0]-self.start[0])
+            b=(self.end[1]-m*self.end[0])
+            N=[]
+            H=frange2(self.start[0],self.end[0],0.05)
+            for i in H:
+                a=Point( i, redu_deci(m*i + b ))
+                N.append(a)
+            self.discretized_line=N
+        else :
+            N=[]
+            H=frange2(self.start[1],self.end[1],0.05)
+            for i in H:
+                a=Point( self.start[0],i )
+                N.append(a)
+            self.discretized_line=N
+            
+        if com==None:
+            return self.discretized_line
+        elif com[0]==self.start[0]  and self.end[0]==self.start[0] and com[1] in range(self.start[1],self.end[1]+1):
+            return True
+        elif com[1]!=m*com[0]+b and com[0] in range(self.start[0],self.end[0]+1) and self.end[0]!=self.start[0]:
+            return True
+        else:
+            return False
+
+    def __repr__(self) -> str:
+        return str(self.__dict__)
+    
 
 class Rectangle:
     def __init__(self,method:int):
@@ -31,6 +97,12 @@ class Rectangle:
         if(self.width==0):
                 self.width=self.height
 
+    def set_Lines(self,L1:Line,L2:Line,L3:Line,L4:Line):
+        self.L1=L1
+        self.L2=L2
+        self.L3=L3
+        self.L4=L4
+
     def compute_area(self):
         if self.method==1:
             self.du()
@@ -41,7 +113,18 @@ class Rectangle:
         if self.method==3:       
             return  abs((self.c2[0]-self.c1[0])*(self.c2[1]-self.c1[1]))
         if self.method==4:
-            return (float(max([self.L1[0],self.L2[0],self.L3[0],self.L4[0]]))-float(min([self.L1[0],self.L2[0],self.L3[0],self.L4[0]])))*(float(max([self.L1[1],self.L2[1],self.L3[1],self.L4[1]]))-float(min([self.L1[1],self.L2[1],self.L3[1],self.L4[1]])))
+            A=[self.L1.compute_length(),self.L2.compute_length(),self.L3.compute_length(),self.L4.compute_length()]
+            c,d=1,0 
+            for i in A:
+                if i!=c:
+                    c=c*i
+                    d+=1
+                    print(d)
+                    if d==2:
+                        return c
+            if d<2:
+                c=c**2
+            return c
         
     def compute_perimeter(self):
         if self.method==1:
@@ -52,6 +135,8 @@ class Rectangle:
             return 2*self.height+2*self.width
         if self.method==3:       
             return  2*abs(self.c2[0]-self.c1[0])+2*abs(self.c2[1]-self.c1[1])
+        if self.method==4:
+            return self.L1.compute_length()+self.L2.compute_length()+self.L3.compute_length()+self.L4.compute_length()
 
     def __repr__(self):
         return str(self.__dict__)
@@ -99,9 +184,6 @@ class Square(Rectangle):
                 b:Point=(b1,a2)
                 self.c1=a
                 self.c2=b
-                #a=Point(self.c1[0], self.c2[1])
-                #b=Point(self.c2[0], self.c1[1])
-                #self.c1,self.c2=a,b
 
     
     def compute_interference_point(self,p:Point):
@@ -112,7 +194,7 @@ class Square(Rectangle):
             return False
 
     def compute_interference_line(self,L:Line):
-        if self.compute_interference_point(L.p1) and self.compute_interference_point(L.p2):
+        if self.compute_interference_point(L.start) and self.compute_interference_point(L.end):
             return True
         else:
             return False
@@ -141,13 +223,18 @@ print(B.compute_interference_line(C))
 print(B.compute_area(),B.compute_perimeter())
 #print(C.compute_area(),C.compute_perimeter())
 
-a:Line=((0,0),(0,4))
-b:Line=((0,4),(4,4))
-c:Line=((4,4),(4,0))
-d:Line=((4,0),(0,0))
+a=Line((0,0),(0,4))
+b=Line((0,4),(5,4))
+c=Line((5,4),(5,0))
+d=Line((5,0),(0,0))
 D=Square(4)
-D.L1=a
-D.L2=b
-D.L3=c
-D.L4=d
-print(D.compute_area())
+D.set_Lines(a,b,c,d)
+print(D.compute_area(),D.compute_perimeter())
+#print(b.compute_length())
+
+Z=Line((0,0),(0,6))
+#print(Z.compute_length())
+#print(Z.compute_slope())
+#print(Z.compute_horizontal_cross())
+#print(Z.compute_vertical_cross())
+print(Z.discretize_line((1,1)))
