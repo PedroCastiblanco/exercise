@@ -1,10 +1,10 @@
 import  math as ma
 
-def frange2(start, stop, step):
+def frange2(start, stop, step):#for con float
     n_items = int(ma.ceil((stop - start) / step))
     return [redu_deci(start + i*step )  for i in range(n_items+1)]
 
-def redu_deci(a:float):
+def redu_deci(a:float): #Reducir decimales a maxima 3 cifras significativas
     return round(int(a*1000)/1000,2)
 
 
